@@ -9,6 +9,11 @@ const Button = ({ text, handleClick }) => {
 };
 
 const Statistics = ({good, neutral, bad, sum, total}) => {
+	if(total == 0) {
+		return (
+			<p>No feedback given</p>
+		)
+	}
 	return (
 		<>
 			<Header text="statistics" />
