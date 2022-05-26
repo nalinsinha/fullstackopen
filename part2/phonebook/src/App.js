@@ -1,58 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import entry from "./services/entry";
-
-const Filter = ({ search, handleSearchChange }) => {
-	return (
-		<form>
-			<div>
-				filter shown with{" "}
-				<input value={search} onChange={handleSearchChange} />
-			</div>
-		</form>
-	);
-};
-
-const PersonForm = ({
-	addName,
-	newName,
-	handleNameChange,
-	newPhone,
-	handlePhoneChange,
-}) => {
-	return (
-		<form onSubmit={addName}>
-			<div>
-				name: <input value={newName} onChange={handleNameChange} />
-			</div>
-			<div>
-				number: <input value={newPhone} onChange={handlePhoneChange} />
-			</div>
-			<div>
-				<button type="submit">add</button>
-			</div>
-		</form>
-	);
-};
-
-const Persons = ({ personsToShow }) => {
-	console.log("personstoShow: ", personsToShow);
-	return (
-		<>
-			{personsToShow.map((person) => (
-				<Person key={person.name} person={person} />
-			))}
-		</>
-	);
-};
-
-const Person = ({ person }) => {
-	return (
-		<p key={person.name}>
-			{person.name} {person.number}
-		</p>
-	);
-};
+import PersonForm from "./components/PersonFrom";
+import Persons from "./components/Persons";
+import Filter from "./components/Filter";
 
 const App = () => {
 	const [persons, setPersons] = useState([
@@ -65,9 +16,9 @@ const App = () => {
 
 	useEffect(() => {
 		console.log("effect");
-		entry.getAll().then(response => {
-			setPersons(response.data)
-		})
+		entry.getAll().then((response) => {
+			setPersons(response.data);
+		});
 	}, []);
 
 	const personsToShow = showAll
@@ -90,22 +41,37 @@ const App = () => {
 			setShowAll(false);
 		}
 	};
-	const message = `${newName} is already added to phonebook`;
+	const deleteUser = (id) => {
+		entry.del(id).then((response) => {
+			let newPersons = persons.filter((person) => person.id !== id);
+			setPersons(newPersons);
+		});
+	};
+	const message = `${newName} is already added to phonebook, replace the old number with a new one?`;
 
 	const addName = (event) => {
 		event.preventDefault();
 		if (persons.find((person) => person.name === newName)) {
-			alert(message);
+			//confirm if user wants to overwrite
+			if(window.confirm(message)){
+				entry.update(persons.find((person) => person.name === newName).id, {
+					name: newName,
+					number: newPhone,
+				}).then((response) => {
+					setPersons(persons.map((person) =>
+						person.name === newName ? response.data : person
+					));
+				});
+			}
 		} else {
 			const temp = {
 				name: newName,
 				number: newPhone,
-				id: (persons.length + 1),
+				id: persons.length + 1,
 			};
-			entry.create(temp).then(response => {
+			entry.create(temp).then((response) => {
 				setPersons(persons.concat(response.data));
-			})
-			
+			});
 		}
 		setNewName("");
 		setNewPhone("");
@@ -124,7 +90,7 @@ const App = () => {
 				handlePhoneChange={handlePhoneChange}
 			/>
 			<h3>Numbers</h3>
-			<Persons personsToShow={personsToShow} />
+			<Persons personsToShow={personsToShow} deleteUser={deleteUser} />
 		</div>
 	);
 };
