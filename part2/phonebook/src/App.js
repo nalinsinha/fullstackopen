@@ -4,6 +4,7 @@ import entry from "./services/entry";
 import PersonForm from "./components/PersonFrom";
 import Persons from "./components/Persons";
 import Filter from "./components/Filter";
+import Notification from "./components/Notification"
 
 const App = () => {
 	const [persons, setPersons] = useState([
@@ -13,6 +14,7 @@ const App = () => {
 	const [newPhone, setNewPhone] = useState("");
 	const [showAll, setShowAll] = useState(true);
 	const [search, setSearch] = useState("");
+	const [updateMessage, setUpdateMessage] = useState("");
 
 	useEffect(() => {
 		console.log("effect");
@@ -52,16 +54,26 @@ const App = () => {
 	const addName = (event) => {
 		event.preventDefault();
 		if (persons.find((person) => person.name === newName)) {
-			//confirm if user wants to overwrite
-			if(window.confirm(message)){
-				entry.update(persons.find((person) => person.name === newName).id, {
-					name: newName,
-					number: newPhone,
-				}).then((response) => {
-					setPersons(persons.map((person) =>
-						person.name === newName ? response.data : person
-					));
-				});
+			if (window.confirm(message)) {
+				entry
+					.update(
+						persons.find((person) => person.name === newName).id,
+						{
+							name: newName,
+							number: newPhone,
+						}
+					)
+					.then((response) => {
+						setPersons(
+							persons.map((person) =>
+								person.name === newName ? response.data : person
+							)
+						);
+					});
+				setUpdateMessage(`Updated ${newName}`);
+				setTimeout(() => {
+					setUpdateMessage(null);
+				}, 5000);
 			}
 		} else {
 			const temp = {
@@ -72,6 +84,10 @@ const App = () => {
 			entry.create(temp).then((response) => {
 				setPersons(persons.concat(response.data));
 			});
+			setUpdateMessage(`Updated ${newName}`);
+			setTimeout(() => {
+				setUpdateMessage(null);
+			}, 5000);
 		}
 		setNewName("");
 		setNewPhone("");
@@ -80,6 +96,7 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
+			<Notification message={updateMessage}/>
 			<Filter search={search} handleSearchChange={handleSearchChange} />
 			<h3>Add a new</h3>
 			<PersonForm
