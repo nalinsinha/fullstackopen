@@ -4,7 +4,8 @@ import entry from "./services/entry";
 import PersonForm from "./components/PersonFrom";
 import Persons from "./components/Persons";
 import Filter from "./components/Filter";
-import Notification from "./components/Notification"
+import Notification from "./components/Notification";
+import ErrorMessage from "./components/ErrorMessage";
 
 const App = () => {
 	const [persons, setPersons] = useState([
@@ -14,7 +15,8 @@ const App = () => {
 	const [newPhone, setNewPhone] = useState("");
 	const [showAll, setShowAll] = useState(true);
 	const [search, setSearch] = useState("");
-	const [updateMessage, setUpdateMessage] = useState("");
+	const [updateMessage, setUpdateMessage] = useState(null);
+	const [errorMessage, setErrorMessage] = useState(null);
 
 	useEffect(() => {
 		console.log("effect");
@@ -69,11 +71,19 @@ const App = () => {
 								person.name === newName ? response.data : person
 							)
 						);
+						setUpdateMessage(`Updated ${newName}`);
+						setTimeout(() => {
+							setUpdateMessage(null);
+						}, 5000);
+					})
+					.catch((error) => {
+						setErrorMessage(
+							`'${newName}' was already removed from server`
+						);
+						setTimeout(() => {
+							setErrorMessage(null);
+						}, 5000);
 					});
-				setUpdateMessage(`Updated ${newName}`);
-				setTimeout(() => {
-					setUpdateMessage(null);
-				}, 5000);
 			}
 		} else {
 			const temp = {
@@ -81,13 +91,23 @@ const App = () => {
 				number: newPhone,
 				id: persons.length + 1,
 			};
-			entry.create(temp).then((response) => {
-				setPersons(persons.concat(response.data));
-			});
-			setUpdateMessage(`Updated ${newName}`);
-			setTimeout(() => {
-				setUpdateMessage(null);
-			}, 5000);
+			entry
+				.create(temp)
+				.then((response) => {
+					setPersons(persons.concat(response.data));
+					setUpdateMessage(`Updated ${newName}`);
+					setTimeout(() => {
+						setUpdateMessage(null);
+					}, 5000);
+				})
+				.catch((error) => {
+					setErrorMessage(
+						`'${newName}' was already removed from server`
+					);
+					setTimeout(() => {
+						setErrorMessage(null);
+					}, 5000);
+				});
 		}
 		setNewName("");
 		setNewPhone("");
@@ -96,7 +116,8 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
-			<Notification message={updateMessage}/>
+			<Notification message={updateMessage} />
+			<ErrorMessage message={errorMessage} />
 			<Filter search={search} handleSearchChange={handleSearchChange} />
 			<h3>Add a new</h3>
 			<PersonForm
