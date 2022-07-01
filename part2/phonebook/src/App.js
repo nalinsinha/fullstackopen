@@ -8,9 +8,7 @@ import Notification from "./components/Notification";
 import ErrorMessage from "./components/ErrorMessage";
 
 const App = () => {
-	const [persons, setPersons] = useState([
-		{ name: "Arto Hellas", number: "040-1234567" },
-	]);
+	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
 	const [newPhone, setNewPhone] = useState("");
 	const [showAll, setShowAll] = useState(true);
